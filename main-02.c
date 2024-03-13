@@ -23,40 +23,42 @@ int main(int argc, char *argv[]) { // Главная точка вхождени
         forkResult_1 = fork(); // Создание первого процесса
         if (forkResult_1 == (pid_t) - 1) exit(EXIT_FAILURE); // Проверка на корректность первого процесса
         if (forkResult_1 == 0) { // Если мы в первом процессе потомке
-            (void)execl(argv[2], argv[2], argv[3], buffer, (char*)0); // Запуска первого процесса
+            sprintf(buffer, "%d", filePipes_1[1]);
+            (void)execl(argv[1], argv[1], argv[2], buffer, (char*)0); // Запуска первого процесса
             exit(EXIT_FAILURE); // Завершение процесса
         } else { // Если мы в процессе основной программе
             forkResult_2 = fork(); // Создать второй процесс
             if (forkResult_2 == 0) { // Если мы в процессе второго потомка
-                (void)execl(argv[2], argv[2], argv[4], buffer, (char*)0); // Запуск второго процесса
+                sprintf(buffer, "%d", filePipes_2[1]);
+                (void)execl(argv[1], argv[1], argv[3], buffer, (char*)0); // Запуск второго процесса
                 exit(EXIT_FAILURE); // Завершение процесса
             } else { // Если мы в основной программе
                 wait(0); // В ожидание первый процесс
                 wait(0); // В ожидание второй процесс
                 dataProcessed_1 = read(filePipes_1[0], temp_1, BUFSIZ); // Запись первого процесса
                 dataProcessed_2 = read(filePipes_2[0], temp_2, BUFSIZ); // Запись второго процесса
-                printf("Read ", dataProcessed_1, " bytes: ", temp_1, "\n"); // Вывод информации о первом процессе
-                printf("Read ", dataProcessed_2, " bytes: ", temp_2, "\n"); // Вывод информации о втором процессе
+                printf("Read %d bytes: %s\n", dataProcessed_1, temp_1); // Вывод информации о первом процессе
+                printf("Read %d bytes: %s\n", dataProcessed_2, temp_2); // Вывод информации о втором процессе
             }
         }
     }
 
     // Шифровка и запись в файл
     char temp_3[BUFSIZ + 1]; // Временный массив для хранения исходных данных
-    FILE *output = fopen("output", "w+"); // Открытие файла с результатов
+    FILE *output = fopen("output.txt", "w+"); // Открытие файла с результатов
     // Создание побитной матрицы XOR
     int i = 0;
     for (i = 0; i < strlen(temp_1); i++) { // Цикл по массиву из файла
         if (strlen(temp_1) < i) temp_1[i] = 0; // Если символы в первом массиве закончились
         if (strlen(temp_2) < i) temp_2[i] = 0; // Если символы во втором массиве закончились
         temp_3[i] = temp_1[i] ^ temp_2[i]; // XOR двух массивов
-        printf("output[",i,"]: ",(int)temp_1[i]," ^ ",(int)temp_2[i]," = ",temp_3[i],"\n"); // Вывод промежуточного этапа
+        printf("output[%d]: %d ^ %d = %d\n", i,  (int)temp_1[i], (int)temp_2[i], temp_3[i]); // Вывод промежуточного этапа
         fprintf(output, "%c", temp_3[i]); // Запись в файл символа
     }
 
     // Вывод конечного результата
     printf("output:");
-    for(int j = 0; j < i; j++) printf(temp_3[j], "|", (int)temp_3[j], "  "); // Печать конечного результата
+    for(int j = 0; j < i; j++) printf("%d|%c  ", (int)temp_3[j], temp_3[j]); // Печать конечного результата
     printf("\n");
     exit(EXIT_SUCCESS); // Завершение программы
 }
