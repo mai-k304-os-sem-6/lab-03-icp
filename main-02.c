@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) { // Главная точка вхождени
         if (strlen(temp_2) < i) temp_2[i] = 0; // Если символы во втором массиве закончились
         temp_3[i] = temp_1[i] ^ temp_2[i]; // XOR двух массивов
         printf("output[",i,"]: ",(int)temp_1[i]," ^ ",(int)temp_2[i]," = ",temp_3[i],"\n"); // Вывод промежуточного этапа
-        fprintf(result, "%c", temp_3[i]); // Запись в файл символа
+        fprintf(output, "%c", temp_3[i]); // Запись в файл символа
     }
 
     // Вывод конечного результата
