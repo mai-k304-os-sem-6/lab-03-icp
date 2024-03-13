@@ -1,67 +1,61 @@
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/wait.h>
+#include <unistd.h> // Работа с POSIX
+#include <stdlib.h> // Стандарт для СИ
+#include <stdio.h> // Работа с вводом и выводом
+#include <string.h> // Работа со строками
+#include <sys/types.h> // Системные типы данных
+#include <sys/wait.h> // Возможность кидать в ожидание
 
-int main() {
-    int data_processed1;
-    int data_processed2;
-    int file_pipes1[2];
-    int file_pipes2[2];
-    pid_t fork_result1;
-    pid_t fork_result2;
-    char Temp1[BUFSIZ + 1];
-    char Temp2[BUFSIZ + 1];
-    char buffer[BUFSIZ + 1];
-    memset(buffer, '\0', sizeof(buffer));
-    if (pipe(file_pipes1) == 0 && pipe(file_pipes2) == 0) {
-        fork_result1 = fork();
-        if (fork_result1 == (pid_t)-1) {
-            fprintf(stderr, "Fork failure");
-            exit(EXIT_FAILURE);
-        }
-        if (fork_result1 == 0) { // Форк1
-            sprintf(buffer, "%d", file_pipes1[1]);
-            (void)execl("laba4_1_1", "laba4_1_1", "file1.txt", buffer, (char*)0);
-            exit(EXIT_FAILURE);
-        } else {
-            fork_result2 = fork();
-            if (fork_result2 == 0) { // Форк2
-                sprintf(buffer, "%d", file_pipes2[1]);
-                (void)execl("laba4_1_1", "laba4_1_1", "file2.txt", buffer, (char*)0);
-                exit(EXIT_FAILURE);
-            } else { // Родительский процесс
-                wait(0);
-                wait(0);
-                printf("++++++++++++++++++++++++++\n");
-                printf("Родительский процесс\n");
-                data_processed1 = read(file_pipes1[0], Temp1, BUFSIZ);
-                data_processed2 = read(file_pipes2[0], Temp2, BUFSIZ);
-                printf("read %d bytes: %s\n", data_processed1, Temp1);
-                printf("read %d bytes: %s\n", data_processed2, Temp2);
+int main(int argc, char *argv[]) { // Главная точка вхождения
+    // Объявление переменных
+    int dataProcessed_1; // Массив в канале данных первого файла
+    int dataProcessed_2; // Массив в канале данных второго файла
+    int filePipes_1[2]; // Номер канала данных первого файла
+    int filePipes_2[2]; // Номер канала данных второго файла
+    pid_t forkResult_1; // Процесс для первого файла
+    pid_t forkResult_2; // Процесс для второго файла
+    char temp_1[BUFSIZ + 1]; // Врменный массив для информации из первого процесса
+    char temp_2[BUFSIZ + 1]; // Врменный массив для информации из второго процесса
+    char buffer[BUFSIZ + 1]; // Буфер для информации
+    memset(buffer, '\0', sizeof(buffer)); // Указание размера буфера
+
+    // Получение данных из канала данных
+    if (pipe(filePipes_1) == 0 && pipe(filePipes_2) == 0) { // Проверка на наличие каналов данных
+        forkResult_1 = fork(); // Создание первого процесса
+        if (forkResult_1 == (pid_t) - 1) exit(EXIT_FAILURE); // Проверка на корректность первого процесса
+        if (forkResult_1 == 0) { // Если первый процесс не созданн
+            (void)execl(argv[2], argv[2], argv[3], buffer, (char*)0); // Запуска первого процесса
+            exit(EXIT_FAILURE); // Завершение процесса
+        } else { // Если первый процесс запущен
+            forkResult_2 = fork(); // Создать второй процесс
+            if (forkResult_2 == 0) { // Если второй процесс
+                (void)execl(argv[2], argv[2], argv[4], buffer, (char*)0); // Запуск второго процесса
+                exit(EXIT_FAILURE); // Завершение процесса
+            } else { // Если первый процесс
+                wait(0); // В ожидание первый процесс
+                wait(0); // В ожидание второй процесс
+                dataProcessed_1 = read(file_pipes1[0], temp_1, BUFSIZ); // Запись первого процесса
+                dataProcessed_2 = read(file_pipes2[0], temp_2, BUFSIZ); // Запись второго процесса
+                printf("Read ", dataProcessed_1, " bytes: ", temp_1, "\n"); // Вывод информации о первом процессе
+                printf("Read ", dataProcessed_2, " bytes: ", temp_2, "\n"); // Вывод информации о втором процессе
             }
         }
     }
-    printf("Temp1: %s\n", Temp1);
-    printf("Temp2: %s\n", Temp2);
-    char Temp3[BUFSIZ + 1];
-    FILE *result = fopen("result", "w+");
-    int i = 0;
-    while(strlen(Temp1) > i) {
-        if (strlen(Temp1) < i)
-            Temp1[i] = 0;
-        if (strlen(Temp2) < i)
-            Temp2[i] = 0;
-        Temp3[i] = Temp1[i] ^ Temp2[i];
-        printf("Temp3[%d]: %d ^ %d = %d\n", i, (int)Temp1[i], (int)Temp2[i], Temp3[i]);
-        fprintf(result, "%c", Temp3[i]);
-        i++;
+
+    // Шифровка и запись в файл
+    char temp_3[BUFSIZ + 1]; // Временный массив для хранения исходных данных
+    FILE *output = fopen("output", "w+"); // Открытие файла с результатов
+    // Создание побитной матрицы XOR
+    for (int i = 0; i < strlen(temp_1); i++) { // Цикл по массиву из файла
+        if (strlen(temp_1) < i) temp_1[i] = 0; // Если символы в первом массиве закончились
+        if (strlen(temp_2) < i) temp_2[i] = 0; // Если символы во втором массиве закончились
+        temp_3[i] = temp_1[i] ^ temp_2[i]; // Символ умножения двух массивов
+        printf("output[",i,"]: ",(int)temp_1[i]," ^ ",(int)temp_2[i]," = ",temp_3[i],"\n"); // Вывод промежуточного этапа
+        fprintf(result, "%c", Temp3[i]); // Запись в файл символа
     }
-    printf("Temp3:");
-    for(int j = 0; j < i;j++)
-        printf("%d|%c ", (int)Temp3[j], Temp3[j]);
+
+    // Вывод конечного результата
+    printf("output:");
+    for(int j = 0; j < i; j++) printf(temp_3[j], "|", (int)temp_3[j], "  "); // Печать конечного результата
     printf("\n");
-    exit(EXIT_SUCCESS);
+    exit(EXIT_SUCCESS); // Завершение программы
 }
