@@ -33,8 +33,8 @@ int main(int argc, char *argv[]) { // Главная точка вхождени
             } else { // Если мы в основной программе
                 wait(0); // В ожидание первый процесс
                 wait(0); // В ожидание второй процесс
-                dataProcessed_1 = read(file_pipes1[0], temp_1, BUFSIZ); // Запись первого процесса
-                dataProcessed_2 = read(file_pipes2[0], temp_2, BUFSIZ); // Запись второго процесса
+                dataProcessed_1 = read(filePipes_1[0], temp_1, BUFSIZ); // Запись первого процесса
+                dataProcessed_2 = read(filePipes_2[0], temp_2, BUFSIZ); // Запись второго процесса
                 printf("Read ", dataProcessed_1, " bytes: ", temp_1, "\n"); // Вывод информации о первом процессе
                 printf("Read ", dataProcessed_2, " bytes: ", temp_2, "\n"); // Вывод информации о втором процессе
             }
@@ -45,12 +45,13 @@ int main(int argc, char *argv[]) { // Главная точка вхождени
     char temp_3[BUFSIZ + 1]; // Временный массив для хранения исходных данных
     FILE *output = fopen("output", "w+"); // Открытие файла с результатов
     // Создание побитной матрицы XOR
-    for (int i = 0; i < strlen(temp_1); i++) { // Цикл по массиву из файла
+    int i = 0;
+    for (i = 0; i < strlen(temp_1); i++) { // Цикл по массиву из файла
         if (strlen(temp_1) < i) temp_1[i] = 0; // Если символы в первом массиве закончились
         if (strlen(temp_2) < i) temp_2[i] = 0; // Если символы во втором массиве закончились
         temp_3[i] = temp_1[i] ^ temp_2[i]; // XOR двух массивов
         printf("output[",i,"]: ",(int)temp_1[i]," ^ ",(int)temp_2[i]," = ",temp_3[i],"\n"); // Вывод промежуточного этапа
-        fprintf(result, "%c", Temp3[i]); // Запись в файл символа
+        fprintf(result, "%c", temp_3[i]); // Запись в файл символа
     }
 
     // Вывод конечного результата
