@@ -22,15 +22,15 @@ int main(int argc, char *argv[]) { // Главная точка вхождени
     if (pipe(filePipes_1) == 0 && pipe(filePipes_2) == 0) { // Проверка на наличие каналов данных
         forkResult_1 = fork(); // Создание первого процесса
         if (forkResult_1 == (pid_t) - 1) exit(EXIT_FAILURE); // Проверка на корректность первого процесса
-        if (forkResult_1 == 0) { // Если первый процесс не созданн
+        if (forkResult_1 == 0) { // Если мы в первом процессе потомке
             (void)execl(argv[2], argv[2], argv[3], buffer, (char*)0); // Запуска первого процесса
             exit(EXIT_FAILURE); // Завершение процесса
-        } else { // Если первый процесс запущен
+        } else { // Если мы в процессе основной программе
             forkResult_2 = fork(); // Создать второй процесс
-            if (forkResult_2 == 0) { // Если второй процесс
+            if (forkResult_2 == 0) { // Если мы в процессе второго потомка
                 (void)execl(argv[2], argv[2], argv[4], buffer, (char*)0); // Запуск второго процесса
                 exit(EXIT_FAILURE); // Завершение процесса
-            } else { // Если первый процесс
+            } else { // Если мы в основной программе
                 wait(0); // В ожидание первый процесс
                 wait(0); // В ожидание второй процесс
                 dataProcessed_1 = read(file_pipes1[0], temp_1, BUFSIZ); // Запись первого процесса
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) { // Главная точка вхождени
     for (int i = 0; i < strlen(temp_1); i++) { // Цикл по массиву из файла
         if (strlen(temp_1) < i) temp_1[i] = 0; // Если символы в первом массиве закончились
         if (strlen(temp_2) < i) temp_2[i] = 0; // Если символы во втором массиве закончились
-        temp_3[i] = temp_1[i] ^ temp_2[i]; // Символ умножения двух массивов
+        temp_3[i] = temp_1[i] ^ temp_2[i]; // XOR двух массивов
         printf("output[",i,"]: ",(int)temp_1[i]," ^ ",(int)temp_2[i]," = ",temp_3[i],"\n"); // Вывод промежуточного этапа
         fprintf(result, "%c", Temp3[i]); // Запись в файл символа
     }
